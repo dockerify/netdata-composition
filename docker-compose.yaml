@@ -1,0 +1,39 @@
+version: '3'
+
+services:
+  netdata:
+    image: netdata/netdata:stable
+    container_name: netdata
+    pid: host
+    network_mode: host
+    restart: always 
+    cap_add:
+      - SYS_PTRACE
+      - SYS_ADMIN
+    security_opt:
+      - no-new-privileges:true
+      - apparmor:unconfined
+    volumes:
+      - ./netdataconfig:/etc/netdata
+      - ./netdatalib:/var/lib/netdata
+      - ./netdatacache:/var/cache/netdata
+      - /etc/group:/host/etc/group:ro
+      - /etc/hostname:/host/etc/hostname:ro
+      - /etc/localtime:/etc/localtime:ro
+      - /etc/os-release:/host/etc/os-release:ro
+      - /etc/passwd:/host/etc/passwd:ro
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /var/log:/host/var/log:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - DOCKER_HOST=localhost:2375
+
+  netdata-proxy:
+    image: tecnativa/docker-socket-proxy
+    container_name: netdata-proxy
+    network_mode: host
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    environment:
+      - CONTAINERS=1
